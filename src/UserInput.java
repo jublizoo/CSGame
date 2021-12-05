@@ -20,7 +20,7 @@ public class UserInput implements KeyListener, MouseListener{
 	
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
+		m.person.attack();
 		
 	}
 

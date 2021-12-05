@@ -1,3 +1,5 @@
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.util.ArrayList;
 
 public class Person {
@@ -30,8 +32,13 @@ public class Person {
 	public static double aspectRatio;
 	
 	public static double movementSpeed;
+	
+	public static final int maxHealth = 5;
 	public static int health;
 	public static int cooldown;
+	
+	public static int attackDamage;
+	public static double attackRange;
 	
 	public Person(Main m) {
 		this.m = m;
@@ -45,8 +52,11 @@ public class Person {
 		pixelPosition = new Double[2];
 		movementSpeed = 0.01;
 		
-		health = 20;
+		health = maxHealth;
 		cooldown = 0;
+		
+		attackDamage = 2;
+		attackRange = 0.08;
 		
 	}
 	
@@ -57,21 +67,109 @@ public class Person {
 		
 	}
 	
-	public static void takeDamage(int damage) {
+	public void takeDamage(int damage, int tick) {
 		if(cooldown == 0) {
 			if(health - damage > 0) {
 				health -= damage;
 			}else {
-				System.out.println("Game over");
+				health = 0;
 			}
 		
 		}
 		
 		cooldown = 3;
 		
+		if(health <= 0 && !m.gameOver) {
+			m.gameOver = true;
+			m.gameOverStartTick = tick;
+		}
+		
+	}
+	
+	public void attack() {
+		double x1;
+		double x2;
+		double y1; 
+		double y2;
+		
+		//Positions of each corner of the monster
+		Double[] middlePosition = new Double[2];
+		
+		Point mouse = MouseInfo.getPointerInfo().getLocation();
+		//Relative mouse position
+		Point rMouse = new Point();
+		rMouse.x = (int) Math.round(mouse.x - m.frame.getContentPane().getLocationOnScreen().x);
+		rMouse.y = (int) Math.round(mouse.y - m.frame.getContentPane().getLocationOnScreen().y);
+		
+		for(int i = 0; i < m.monsters.size(); i++) {
+			m.monsters.get(i).updatePixelAttributes(m.display.innerWidth, m.display.innerHeight);
+			x1 = m.monsters.get(i).pixelPosition[0];
+			y1 = m.monsters.get(i).pixelPosition[1];
+			x2 = x1 + Monster.pixelWidth;
+			y2 = y1 + Monster.pixelWidth * Monster.aspectRatio;
+			
+			if(rMouse.x < x2 && rMouse.x > x1) {
+				if(rMouse.y < y2 && rMouse.y > y1) {
+					if(checkMonsterRange(i)) {
+						m.monsters.get(i).takeDamage(2);
+						
+						if(m.monsters.get(i).health <= 0) {
+							m.removeMonster(i);
+						}
+					}
+				}
+			}
+		}
+		
+	}
+	
+	public boolean checkMonsterRange(int i) {
+		double x1;
+		double x2;
+		double y1; 
+		double y2;
+		
+		double distance;
+		
+		//Positions of each corner of the monster
+		Double[][] monsterPositions = new Double[4][2];
+		Double[] middlePosition = new Double[2];
+		
+		x1 = m.monsters.get(i).position[0];
+		y1 = m.monsters.get(i).position[1];
+		x2 = x1 + Monster.width;
+		y2 = y1 + Monster.width * Monster.aspectRatio;
+		
+		monsterPositions[0] = new Double[] {x1, y1};
+		monsterPositions[1] = new Double[] {x1, y2};
+		monsterPositions[2] = new Double[] {x2, y1};
+		monsterPositions[3] = new Double[] {x2, y2};
+		
+		middlePosition[0] = position[0] + width / 2;
+		middlePosition[1] = position[1] + width * aspectRatio / 2;
+		
+		for(int b = 0; b < monsterPositions.length; b++){
+			double xDistance = monsterPositions[b][0] - middlePosition[0];
+			double yDistance = monsterPositions[b][1] - middlePosition[1];
+			distance = Math.pow(xDistance, 2) + Math.pow(yDistance, 2);
+			distance = Math.sqrt(distance);
+
+			if(distance < attackRange) {
+				return true;
+			}
+		}
+		
+		return false;
+		
+	}
+	
+	public static void levelRegen() {
+		health = health + (maxHealth - health) / 2;
+		
 	}
 	
 	public void updatePosition() {
+		//TODO step back until not collding
 		if(direction.equals("up")) {
 			if(avatarTime == 0) {
 				avatarState = 0;

@@ -11,11 +11,14 @@ public class Monster {
 	public Double[] pixelPosition;
 
 	public static double width;
-	public double pixelWidth;
+	public static double pixelWidth;
 	
 	static double aspectRatio;
 	
 	int health;
+	int cooldown;
+	
+	double transparency;
 	
 	boolean attacking;
 	double attackRange;
@@ -29,7 +32,11 @@ public class Monster {
 	boolean canDamage;
 	static boolean attack1;
 	
+	double moveSpeed;
+	int startMoveTick;
 	int lastMoveTick;
+	Double[] movePosition;
+	boolean moving;
 	
 	public Monster(Main m, double x, double y) {
 		this.m = m;
@@ -39,17 +46,24 @@ public class Monster {
 		position = new Double[] {x, y};
 		pixelPosition = new Double[2];
 		
-		health = 20;
+		health = 10;
+		cooldown = 0;
+		
+		transparency = 1;
+		
 		attacking = false;
 		attackRange = 0.15;
 		attackDamage = 3;
 		//We want to move first, otherwise the monster will get stuck neither moving nor attacking
-		lastAttackTick = -1;
-		attackSpeed = 0.07;
+		lastAttackTick = 0;
+		attackSpeed = 0.05	;
 		canDamage = true;
 		attack1 = false;
 		
-		lastMoveTick = 0;
+		moveSpeed = 0.01;
+		lastMoveTick = -1;
+		movePosition = new Double[2];
+		moving = false;
 	}
 	
 	public void attack(int tick) {
@@ -58,7 +72,7 @@ public class Monster {
 		 * currently attacking, because otherwise we may restart the attack (by setting the radius to 0 and 
 		 * resetting the time) halfway through an attack. 
 		 */
-		if(tick - lastMoveTick > 50 && lastMoveTick > lastAttackTick && !attacking) {
+		if(tick - lastMoveTick > 100 && lastMoveTick > lastAttackTick && !attacking && !moving) {
 			if(Math.random() < 0.1) {
 				attacking = true;
 				attackStartTick = tick;
@@ -74,9 +88,13 @@ public class Monster {
 		if(attacking) {
 			updateAttack(tick);
 		} else {
-			//Wait after attacking to move
-			if(tick - lastAttackTick > 50 && lastAttackTick > lastMoveTick) {
-				updateMovement(tick);
+			if(moving) {
+				updateMove(tick);
+			}else {
+				//Wait after attacking to move
+				if(tick - lastAttackTick > 50 && lastAttackTick > lastMoveTick) {
+					findMove(tick);
+				}
 			}
 		}
 		
@@ -89,7 +107,7 @@ public class Monster {
 		attackTransparency = 1 / Math.pow(Math.E, time * attackSpeed);
 		
 		if(canDamage) {
-			damage();
+			damage(tick);
 		}
 			
 		if(1 - 1 / (Math.pow(Math.E, time * attackSpeed)) > 0.95){
@@ -99,7 +117,7 @@ public class Monster {
 		
 	}
 	
-	public void damage() {
+	public void damage(int tick) {
 		Double[] middlePosition = new Double[2];
 		
 		double x;
@@ -139,14 +157,13 @@ public class Monster {
 		distance = Math.sqrt(distance);
 		
 		if(distance < attackRadius) {
-			Person.takeDamage(attackDamage);
-			System.out.println("bam");
+			m.person	.takeDamage(attackDamage, tick);
 			canDamage = false;
 		}
 		
 	}
 	
-	public void updateMovement(int tick) {
+	public void findMove(int tick) {
 		double x;
 		double y;
 		
@@ -178,9 +195,26 @@ public class Monster {
 		}
 		
 		if(leastDistanceIndexes != null) {
-			position[0] = (double) leastDistanceIndexes[1] / m.levels.get(m.currentLevel)[0].length;
-			position[1] = (double) leastDistanceIndexes[0] / m.levels.get(m.currentLevel).length;
+			movePosition = new Double[2];
+			movePosition[0] = (double) leastDistanceIndexes[1] / m.levels.get(m.currentLevel)[0].length;
+			movePosition[1] = (double) leastDistanceIndexes[0] / m.levels.get(m.currentLevel).length;
+			moving = true;
+			startMoveTick = tick;
+		}
+		
+	}
+	
+	public void updateMove(int tick) {
+		double moveDuration = 1 / moveSpeed;
+		int time = tick - startMoveTick;
+		
+		transparency = 2 * Math.abs((time / moveDuration) - 0.5);
+		
+		if(time > moveDuration) {
 			lastMoveTick = tick;
+			moving = false;
+		}else if(time > moveDuration / 2) {
+			position = movePosition;
 		}
 		
 	}
@@ -196,9 +230,37 @@ public class Monster {
 			if(row == i && column == b) {
 				return true;
 			}
+			
+			//For prepared moves
+			if(m.monsters.get(c).movePosition[0] != null) {
+				row = (int) (m.monsters.get(c).movePosition[1] * m.levels.get(m.currentLevel).length);
+				column = (int) (m.monsters.get(c).movePosition[0] * m.levels.get(m.currentLevel)[0].length);
+				 
+				if(row == i && column == b) {
+					return true;
+				}
+			}
 		}
 		
 		return false;
+	}
+	
+	public void takeDamage(int damage) {
+		if(!moving && !attacking) {
+			if(cooldown == 0) {
+				health -= damage;
+				System.out.println(health);
+			}
+			
+			cooldown = 3; 
+		}
+		
+	}
+	
+	public void coolDown() {
+		if(cooldown > 0) {
+			cooldown--;
+		}
 	}
 	
 	public void updatePixelAttributes(double innerWidth, double innerHeight) {

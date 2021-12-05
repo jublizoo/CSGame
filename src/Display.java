@@ -1,11 +1,16 @@
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
+import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.awt.image.RescaleOp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
@@ -27,6 +32,7 @@ public class Display extends JPanel {
 	ArrayList<BufferedImage> characterImgs;
 	BufferedImage wallImg;
 	BufferedImage groundImg;
+	BufferedImage gameOver;
 	
 	boolean monsterAttack;
 
@@ -51,16 +57,68 @@ public class Display extends JPanel {
 			m.monsters.get(i).updatePixelAttributes(innerWidth, innerHeight);
 		}
 		
-		drawBackground(g2d);
+		if(m.gameOver) {
+			drawEndScreen(g2d);
+		}else {
+			drawBackground(g2d);
+			
+			drawLevel(g2d);
+			
+			drawCharacter(g2d);
+			
+			drawMonsterAttack(g2d);
+			
+			drawMonster(g2d);
+			
+			drawHealth(g2d);
+		}
 		
-		drawLevel(g2d);
+		//drawMouse(g2d);
 		
-		drawCharacter(g2d);
+	}
+	
+	public void drawEndScreen(Graphics2D g2d) {
+		BufferedImage img;
+		RescaleOp op;
+		Font font;
+		int fontSize;
+		int stringX;
+		int stringY;
+		double transparency;
+		double gameOverDuration = 1 / m.gameOverSpeed;
+		int time = m.numTicks - m.gameOverStartTick;
 		
-		drawMonsterAttack(g2d);
+		if(time > gameOverDuration) {
+			transparency = 1;
+		}else {
+			transparency = time / gameOverDuration;
+		}
 		
-		drawMonster(g2d);
+		img = gameOver;
+		op = new RescaleOp(new float[]
+		{1.0f, 1.0f, 1.0f, (float) transparency}, new float[] {255f, 255f, 255f, 0f}, null); 
+		img = op.filter(img, null);
 		
+		g2d.drawImage(img, (int) Math.round(startX), (int) Math.round(startY), (int) Math.round(innerWidth), (int) Math.round(innerHeight), null);
+		
+		fontSize = (int) Math.round(m.display.innerHeight / 10);
+		font = new Font("Serif", Font.BOLD, fontSize);
+		g2d.setFont(font);	
+		FontMetrics fm = g2d.getFontMetrics();
+		stringX = (int) (startX + Math.round(innerWidth - fm.stringWidth("GAME OVER")) / 2);
+		stringY = (int) (startY + Math.round(innerWidth - fm.getAscent()) / 2);
+		g2d.setColor(new Color(255, 0, 0, (int) Math.round(255 * transparency)));
+		g2d.drawString("GAME OVER", stringX, stringY);
+		
+	}
+	
+	public void drawMouse(Graphics2D g2d) {
+		Point mouse = MouseInfo.getPointerInfo().getLocation();
+		//Relative mouse position
+		Point rMouse = new Point();
+		rMouse.x = (int) Math.round(mouse.x - m.frame.getContentPane().getLocationOnScreen().x);
+		rMouse.y = (int) Math.round(mouse.y - m.frame.getContentPane().getLocationOnScreen().y);
+		g2d.fillOval(rMouse.x, rMouse.y, 5, 5);
 	}
 
 	public void loadImages() {
@@ -84,7 +142,7 @@ public class Display extends JPanel {
 			Monster.aspectRatio = (double) img.getHeight() / img.getWidth();
 			op = new RescaleOp(new float[]
 			{1.0f, 1.0f, 1.0f, 0.8f}, new float[] {0f, 0f, 0f, 0f}, null); 
-			img = op.filter(img, null); monsterImg = img;
+			img = op.filter(img, null); 
 			monsterImg = img;
 			
 			//Monster attacks
@@ -100,6 +158,10 @@ public class Display extends JPanel {
 			//Ground
 			img = ImageIO.read(new File("ground.jpg"));
 			groundImg = img;
+			
+			//Game over screen
+			img = ImageIO.read(new File("gameover.png"));
+			gameOver = img;
 			 
 			 
 		} catch (IOException e) {
@@ -110,13 +172,13 @@ public class Display extends JPanel {
 	
 	private void drawBackground(Graphics2D g2d) {
 		//Background
-				g2d.setColor(Color.LIGHT_GRAY);
-				g2d.fillRect(0, 0, displayWidth, displayHeight);
-				
-				//Blue background to hide pixel rounding gaps
-				g2d.setColor(Color.BLUE);
-				g2d.fillRect((int) Math.round(startX), (int) Math.round(startY), 
-							(int) Math.round(innerWidth), (int) Math.round(innerHeight));
+		g2d.setColor(Color.LIGHT_GRAY);
+		g2d.fillRect(0, 0, displayWidth, displayHeight);
+		
+		//Blue background to hide pixel rounding gaps
+		g2d.setColor(Color.BLUE);
+		g2d.fillRect((int) Math.round(startX), (int) Math.round(startY), 
+					(int) Math.round(innerWidth), (int) Math.round(innerHeight));
 	}
 	
 	private void drawLevel(Graphics2D g2d) {
@@ -168,6 +230,28 @@ public class Display extends JPanel {
 		
 	}
 	
+	public void drawHealth(Graphics2D g2d){
+		double aspectRatio = 0.2;
+		int width = (int) Math.round(innerWidth / 5);
+		int height = (int) Math.round(width * aspectRatio);
+		int startX = (int) Math.round(this.startX + innerWidth / 20);
+		int startY = (int) Math.round(this.startY + innerWidth / 20);
+		int barWidth = (int) Math.round((double) width * Person.health / Person.maxHealth);
+		int fontSize = (int) Math.round(innerWidth / 20);
+		
+		Font font = new Font("Serif", Font.BOLD, fontSize);
+		g2d.setFont(font);
+		g2d.setColor(Color.WHITE);
+		g2d.drawString("HEATLH", startX, startY - fontSize / 4);
+		
+		g2d.setColor(Color.LIGHT_GRAY);
+		g2d.fillRect(startX, startY, width, height);
+		g2d.setColor(Color.RED);
+		g2d.fillRect(startX, startY, barWidth, height);
+		g2d.setColor(Color.WHITE);
+		g2d.drawRect(startX, startY, width, height);
+	}
+	
 	private void drawMonsterAttack(Graphics2D g2d) {
 		BufferedImage img;
 		RescaleOp op;
@@ -201,12 +285,32 @@ public class Display extends JPanel {
 	}
 	
 	private void drawMonster(Graphics2D g2d) {
+		RescaleOp op;
+		BufferedImage img;
+		
 		for(int i = 0; i < m.monsters.size(); i++) {
-			g2d.drawImage(monsterImg,
+			op = new RescaleOp(new float[]
+			{1.0f, 1.0f, 1.0f, (float) m.monsters.get(i).transparency}, new float[] {0f, 0f, 0f, 0f}, null); 
+			img = op.filter(monsterImg, null);
+			
+			if(m.monsters.get(i).cooldown > 0) {
+				op = new RescaleOp(new float[]
+						{1.0f, 1.0f, 1.0f, 1.0f}, new float[] {200f, -200f, -200f, 0f}, null); 
+				img = op.filter(img, null);
+
+			}
+			
+			if(m.person.checkMonsterRange(i)) {
+				op = new RescaleOp(new float[]
+						{1.0f, 1.0f, 1.0f, 1.0f}, new float[] {0f, 0f, 100f, 0f}, null); 
+				img = op.filter(img, null);
+			}
+					
+			g2d.drawImage(img,
 					(int) Math.round(m.monsters.get(i).pixelPosition[0]),
 					(int) Math.round(m.monsters.get(i).pixelPosition[1]),
-					(int) Math.round(m.monsters.get(i).pixelWidth),
-					(int) Math.round(m.monsters.get(i).pixelWidth * Monster.aspectRatio),
+					(int) Math.round(Monster.pixelWidth),
+					(int) Math.round(Monster.pixelWidth * Monster.aspectRatio),
 					null);
 		}
 		
