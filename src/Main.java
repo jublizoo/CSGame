@@ -1,6 +1,11 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.Timer;
  	
@@ -11,8 +16,8 @@ public class Main implements ActionListener{
 	Display display;
 	JFrame frame;
 	
-	final static int initialWidth = 500;
-	final static int initialHeight = 500;
+	final static int initialWidth = 1000;
+	final static int initialHeight = 1000;
 	
 	int numTicks;
 	
@@ -71,7 +76,7 @@ public class Main implements ActionListener{
 	public Main() {
 		
 		gameOver = false;
-		gameOverSpeed = 0.001;
+		gameOverSpeed = 0.01;
 		
 		person = new Person(this);
 		powerup = new Powerup(this);
@@ -154,6 +159,8 @@ public class Main implements ActionListener{
 			}
 		}
 		
+		person.updateWidth();
+		
 		Person.levelRegen();
 		
 	}
@@ -169,6 +176,27 @@ public class Main implements ActionListener{
 	public void endGame() {
 		
 	}
+	
+	public void capScreen() {
+		if(display.lastScreen == null && gameOver) {
+			BufferedImage bi = new BufferedImage(display.getWidth(), display.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			//We have to temporarily set this to false so that it paints the pre-gameover image
+			gameOver = false;
+			display.printAll(bi.createGraphics());	
+			gameOver = true;
+			display.lastScreen = bi;
+		}
+				
+	}
+	
+	public void restartGame() {
+		if(gameOver) {
+			gameOver = false;
+			currentLevel = -1;
+			updateLevels();
+			Person.health = Person.maxHealth;
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
@@ -178,6 +206,8 @@ public class Main implements ActionListener{
 			for(int i = 0; i < monsters.size(); i++) {
 				monsters.get(i).attack(numTicks);
 			}
+			
+			Powerup.createPowerups();
 		}
 				
 		if(numTicks % 20 == 0) {
@@ -196,13 +226,17 @@ public class Main implements ActionListener{
 			Monster.setAttack();
 		}
 		
+		Powerup.updatePowerups();
+		
 		person.updatePosition();
 		
 		for(int i = 0; i < monsters.size(); i++) {
 			monsters.get(i).updatePixelAttributes(display.innerWidth, display.innerHeight);
 			monsters.get(i).update(numTicks);
 		}
-				
+		
+		capScreen();
+		
 		display.repaint();
 		
 	}

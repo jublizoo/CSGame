@@ -62,13 +62,32 @@ public class Powerup {
 			speedTime.set(i, speedTime.get(i) - 1);
 		}
 		
-		
 		deletePowerups();
 		
 	}
 	
+	//TODO Account for powerups deleted at the same time
 	static void deletePowerups() {
+		for(int i = 0; i < speedTime.size(); i++) {
+			if(speedTime.get(i) == 0) {
+				speed.remove(i);
+				speedTime.remove(i);
+			}
+		}
 		
+		for(int i = 0; i < bulletTime.size(); i++) {
+			if(bulletTime.get(i) == 0) {
+				bullet.remove(i);
+				bulletTime.remove(i);
+			}
+		}
+		
+		for(int i = 0; i < speedTime.size(); i++) {
+			if(damageTime.get(i) == 0) {
+				damage.remove(i);
+				damageTime.remove(i);
+			}
+		}
 	}
 	
 }

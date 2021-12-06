@@ -33,7 +33,7 @@ public class Person {
 	
 	public static double movementSpeed;
 	
-	public static final int maxHealth = 5;
+	public static final int maxHealth = 20;
 	public static int health;
 	public static int cooldown;
 	
@@ -169,7 +169,13 @@ public class Person {
 	}
 	
 	public void updatePosition() {
-		//TODO step back until not collding
+		/*
+		 * The attributes are stored as a value from 1 - 0. If we are moving by a single pixel, we need the
+		 * pixel size to also be on this scale. Therefore, we divide 1 by the total pixels.
+		 */
+		double eqPixelSize = 1 / m.display.innerWidth;
+		
+		//TODO step back until not colliding
 		if(direction.equals("up")) {
 			if(avatarTime == 0) {
 				avatarState = 0;
@@ -179,7 +185,9 @@ public class Person {
 			
 			position[1] -= movementSpeed;
 			if(wallCollision()) {
-				position[1] += movementSpeed;
+				while(wallCollision()) {
+					position[1] += eqPixelSize;
+				}			
 			}
 		}else if(direction.equals("right")) {
 			if(avatarTime == 0) {
@@ -190,7 +198,9 @@ public class Person {
 			
 			position[0] += movementSpeed;
 			if(wallCollision()) {
-				position[0] -= movementSpeed;
+				while(wallCollision()) {
+					position[0] -= eqPixelSize;
+				}
 			}
 		}else if(direction.equals("down")) {
 			if(avatarTime == 0) {
@@ -201,7 +211,11 @@ public class Person {
 			
 			position[1] += movementSpeed;
 			if(wallCollision()) {
-				position[1] -= movementSpeed;
+				if(wallCollision()) {
+					while(wallCollision()) {
+						position[1] -= eqPixelSize;
+					}			
+				}
 			}
 		}else if(direction.equals("left")) {
 			if(avatarTime == 0) {
@@ -212,7 +226,11 @@ public class Person {
 			
 			position[0] -= movementSpeed;
 			if(wallCollision()) {
-				position[0] += movementSpeed;
+				if(wallCollision()) {
+					while(wallCollision()) {
+						position[0] += eqPixelSize;
+					}			
+				}
 			}
 		} 
 		
@@ -255,6 +273,10 @@ public class Person {
 		
 		return false;
 		
+	}
+	
+	public void updateWidth() {
+		width = 0.4 / m.levels.get(m.currentLevel).length;
 	}
 	
 	public void updatePixelAttributes(double innerWidth, double innerHeight) {

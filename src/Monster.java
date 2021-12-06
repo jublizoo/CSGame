@@ -198,6 +198,9 @@ public class Monster {
 			movePosition = new Double[2];
 			movePosition[0] = (double) leastDistanceIndexes[1] / m.levels.get(m.currentLevel)[0].length;
 			movePosition[1] = (double) leastDistanceIndexes[0] / m.levels.get(m.currentLevel).length;
+			//Adjusting for monster to be in the middle of the square
+			movePosition[0] += (1.0 / m.levels.get(m.currentLevel)[0].length - width) / 2;
+			movePosition[1] += (1.0 / m.levels.get(m.currentLevel).length - width * aspectRatio) / 2;
 			moving = true;
 			startMoveTick = tick;
 		}

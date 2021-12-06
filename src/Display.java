@@ -32,6 +32,7 @@ public class Display extends JPanel {
 	ArrayList<BufferedImage> characterImgs;
 	BufferedImage wallImg;
 	BufferedImage groundImg;
+	BufferedImage lastScreen;
 	BufferedImage gameOver;
 	
 	boolean monsterAttack;
@@ -81,6 +82,7 @@ public class Display extends JPanel {
 		BufferedImage img;
 		RescaleOp op;
 		Font font;
+		FontMetrics fm;
 		int fontSize;
 		int stringX;
 		int stringY;
@@ -94,6 +96,16 @@ public class Display extends JPanel {
 			transparency = time / gameOverDuration;
 		}
 		
+		/*
+		 * If we are drawing this, gameOver is true, so lastScreen will have been initialized 
+		 * (in Main.capScreen()). We draw this before drawing everything else, because otherwise the
+		 * transparency of the drawn image will "stack". We are manually changing the transparency, so we
+		 * want to be able to draw the translucent image on top of the original image, instead of on top of
+		 * multiple other translucent images on top of the original image.
+		 */
+		g2d.drawImage(lastScreen, 0, 0, getWidth(), getHeight(), null);
+
+		
 		img = gameOver;
 		op = new RescaleOp(new float[]
 		{1.0f, 1.0f, 1.0f, (float) transparency}, new float[] {255f, 255f, 255f, 0f}, null); 
@@ -104,11 +116,23 @@ public class Display extends JPanel {
 		fontSize = (int) Math.round(m.display.innerHeight / 10);
 		font = new Font("Serif", Font.BOLD, fontSize);
 		g2d.setFont(font);	
-		FontMetrics fm = g2d.getFontMetrics();
-		stringX = (int) (startX + Math.round(innerWidth - fm.stringWidth("GAME OVER")) / 2);
-		stringY = (int) (startY + Math.round(innerWidth - fm.getAscent()) / 2);
+		
+		fm = g2d.getFontMetrics();
+		stringX = (int) Math.round(startX + (innerWidth - fm.stringWidth("GAME OVER")) / 2);
+		stringY = (int) Math.round(startY + (innerWidth - fm.getAscent()) / 2);
+		
 		g2d.setColor(new Color(255, 0, 0, (int) Math.round(255 * transparency)));
 		g2d.drawString("GAME OVER", stringX, stringY);
+		
+		fontSize = (int) Math.round(m.display.innerHeight / 20);
+		font = new Font("Serif", Font.BOLD, fontSize);
+		g2d.setFont(font);
+		
+		fm = g2d.getFontMetrics();
+		stringX = (int) Math.round(startX + (innerWidth - fm.stringWidth("Press the space bar to retry.")) / 2);
+		
+		g2d.setColor(new Color(20, 20, 20, (int) Math.round(255 * transparency)));
+		g2d.drawString("Press the space bar to retry.", stringX, stringY + fm.getAscent());
 		
 	}
 	
@@ -162,6 +186,9 @@ public class Display extends JPanel {
 			//Game over screen
 			img = ImageIO.read(new File("gameover.png"));
 			gameOver = img;
+			
+			//LastScreen
+			lastScreen = null;
 			 
 			 
 		} catch (IOException e) {

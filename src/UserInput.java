@@ -73,6 +73,9 @@ public class UserInput implements KeyListener, MouseListener{
 				left = true;
 				Person.direction = "left";
 			}
+		}else if(key == ' ') {
+			m.restartGame();
+			m.display.lastScreen = null;
 		}
 		
 	}
