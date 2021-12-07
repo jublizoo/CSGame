@@ -277,12 +277,14 @@ public class Person {
 	
 	public void updateWidth() {
 		width = 0.4 / m.levels.get(m.currentLevel).length;
+		
 	}
 	
 	public void updatePixelAttributes(double innerWidth, double innerHeight) {
 		pixelPosition[0] = m.display.startX + position[0] * innerWidth;
-		pixelPosition[1] = m.display.startY + position[1] * innerHeight;
+		pixelPosition[1] = m.display.startY + position[1] * innerHeight;	
 		pixelWidth = width * innerWidth;
+		
 	}
 	
 	public static void updateAvatarTime() {
@@ -291,6 +293,7 @@ public class Person {
 		}else {
 			avatarTime = 0;
 		}
+		
 	}
 	
 }

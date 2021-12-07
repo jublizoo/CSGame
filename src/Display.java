@@ -34,6 +34,10 @@ public class Display extends JPanel {
 	BufferedImage groundImg;
 	BufferedImage lastScreen;
 	BufferedImage gameOver;
+	BufferedImage damagePwr;
+	BufferedImage speedPwr;
+	BufferedImage gunPwr;
+	BufferedImage healthPwr;
 	
 	boolean monsterAttack;
 
@@ -64,6 +68,8 @@ public class Display extends JPanel {
 			drawBackground(g2d);
 			
 			drawLevel(g2d);
+			
+			drawPowerups(g2d);
 			
 			drawCharacter(g2d);
 			
@@ -183,6 +189,17 @@ public class Display extends JPanel {
 			img = ImageIO.read(new File("ground.jpg"));
 			groundImg = img;
 			
+			//Powerups
+			img = ImageIO.read(new File("powerups/damage.png"));
+			damagePwr = img;
+			img = ImageIO.read(new File("powerups/gun.png"));
+			gunPwr = img;
+			img = ImageIO.read(new File("powerups/health.png"));
+			healthPwr = img;
+			img = ImageIO.read(new File("powerups/speed.png"));
+			speedPwr = img;
+
+			
 			//Game over screen
 			img = ImageIO.read(new File("gameover.png"));
 			gameOver = img;
@@ -277,6 +294,35 @@ public class Display extends JPanel {
 		g2d.fillRect(startX, startY, barWidth, height);
 		g2d.setColor(Color.WHITE);
 		g2d.drawRect(startX, startY, width, height);
+	}
+	
+	public void drawPowerups(Graphics2D g2d) {
+		Integer[] pixelPos = new Integer[2];
+		int squareSize = (int) Math.round(innerWidth / m.levels.get(m.currentLevel).length);
+		
+		for(int i = 0; i < Powerup.speed.size(); i++) {
+			pixelPos[0] = (int) Math.round(startX + Powerup.speed.get(i)[0] * innerWidth);
+			pixelPos[1] = (int) Math.round(startY + Powerup.speed.get(i)[1] * innerHeight);
+			g2d.drawImage(speedPwr, pixelPos[0], pixelPos[1], squareSize, squareSize, null);
+		}
+		
+		for(int i = 0; i < Powerup.bullet.size(); i++) {
+			pixelPos[0] = (int) Math.round(startX + Powerup.bullet.get(i)[0] * innerWidth);
+			pixelPos[1] = (int) Math.round(startY + Powerup.bullet.get(i)[1] * innerHeight);
+			g2d.drawImage(gunPwr, pixelPos[0], pixelPos[1], squareSize, squareSize, null);
+		}
+		
+		for(int i = 0; i < Powerup.damage.size(); i++) {
+			pixelPos[0] = (int) Math.round(startX + Powerup.damage.get(i)[0] * innerWidth);
+			pixelPos[1] = (int) Math.round(startY + Powerup.damage.get(i)[1] * innerHeight);
+			g2d.drawImage(damagePwr, pixelPos[0], pixelPos[1], squareSize, squareSize, null);
+		}
+		
+		for(int i = 0; i < Powerup.health.size(); i++) {
+			pixelPos[0] = (int) Math.round(startX + Powerup.health.get(i)[0] * innerWidth);
+			pixelPos[1] = (int) Math.round(startY + Powerup.health.get(i)[1] * innerHeight);
+			g2d.drawImage(healthPwr, pixelPos[0], pixelPos[1], squareSize, squareSize, null);
+		}
 	}
 	
 	private void drawMonsterAttack(Graphics2D g2d) {

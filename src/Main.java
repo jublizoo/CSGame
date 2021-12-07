@@ -193,11 +193,12 @@ public class Main implements ActionListener{
 		if(gameOver) {
 			gameOver = false;
 			currentLevel = -1;
+			createLevels();
 			updateLevels();
 			Person.health = Person.maxHealth;
 		}
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		numTicks++;
@@ -206,8 +207,6 @@ public class Main implements ActionListener{
 			for(int i = 0; i < monsters.size(); i++) {
 				monsters.get(i).attack(numTicks);
 			}
-			
-			Powerup.createPowerups();
 		}
 				
 		if(numTicks % 20 == 0) {
@@ -216,6 +215,9 @@ public class Main implements ActionListener{
 			for(int i = 0; i < monsters.size(); i++) {
 				monsters.get(i).coolDown();
 			}
+			
+			powerup.createPowerups();
+			Powerup.updatePowerups();
 		}
 		
 		if(numTicks % 10 == 0) {
@@ -225,8 +227,6 @@ public class Main implements ActionListener{
 		if(numTicks % 5 == 0) {
 			Monster.setAttack();
 		}
-		
-		Powerup.updatePowerups();
 		
 		person.updatePosition();
 		
