@@ -73,6 +73,20 @@ public class Main implements ActionListener{
 		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 	};
 	
+	final Integer[][] level4 = new Integer[][] {
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+		{1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1},
+		{1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1},
+		{1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1},
+		{1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1},
+		{1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1},
+		{1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1},
+		{1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1},
+		{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+		{1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1},
+		{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
+	};
+	
 	public Main() {
 		
 		gameOver = false;
@@ -136,6 +150,14 @@ public class Main implements ActionListener{
 		allMonsters.get(2).add(new Monster(this, (4.0 / 11.0), (4.0 / 11.0)));
 		allMonsters.get(2).add(new Monster(this, (9.0 / 11.0), (8.0 / 11.0)));
 		
+		//Level 4
+		allMonsters.add(new ArrayList<Monster>());
+		allMonsters.get(3).add(new Monster(this, (1.0 / 11.0), (2.0 / 11.0)));
+		allMonsters.get(3).add(new Monster(this, (4.0 / 11.0), (4.0 / 11.0)));
+		allMonsters.get(3).add(new Monster(this, (9.0 / 11.0), (8.0 / 11.0)));
+		allMonsters.get(3).add(new Monster(this, (10.0 / 11.0), (8.0 / 11.0)));
+
+		
 	}
 	
 	public void updateLevels() {
@@ -158,6 +180,7 @@ public class Main implements ActionListener{
 				}
 			}
 		}
+		//TODO Delete all powerups
 		
 		person.updateWidth();
 		
@@ -182,7 +205,7 @@ public class Main implements ActionListener{
 			BufferedImage bi = new BufferedImage(display.getWidth(), display.getHeight(), BufferedImage.TYPE_INT_ARGB);
 			//We have to temporarily set this to false so that it paints the pre-gameover image
 			gameOver = false;
-			display.printAll(bi.createGraphics());	
+			display.printAll(bi.createGraphics());
 			gameOver = true;
 			display.lastScreen = bi;
 		}
@@ -211,6 +234,7 @@ public class Main implements ActionListener{
 				
 		if(numTicks % 20 == 0) {
 			Person.cooldown();
+			Person.updatePowerups();
 			
 			for(int i = 0; i < monsters.size(); i++) {
 				monsters.get(i).coolDown();
@@ -229,11 +253,14 @@ public class Main implements ActionListener{
 		}
 		
 		person.updatePosition();
+		person.updateBullets();
 		
 		for(int i = 0; i < monsters.size(); i++) {
 			monsters.get(i).updatePixelAttributes(display.innerWidth, display.innerHeight);
 			monsters.get(i).update(numTicks);
 		}
+		
+		powerup.collision();
 		
 		capScreen();
 		

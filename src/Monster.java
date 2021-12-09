@@ -249,14 +249,14 @@ public class Monster {
 	}
 	
 	public void takeDamage(int damage) {
-		if(!moving && !attacking) {
+		//if(!moving) {
 			if(cooldown == 0) {
 				health -= damage;
 				System.out.println(health);
 			}
 			
 			cooldown = 3; 
-		}
+		//}
 		
 	}
 	

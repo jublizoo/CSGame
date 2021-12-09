@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -70,6 +71,8 @@ public class Display extends JPanel {
 			drawLevel(g2d);
 			
 			drawPowerups(g2d);
+			
+			drawBullets(g2d);
 			
 			drawCharacter(g2d);
 			
@@ -274,7 +277,32 @@ public class Display extends JPanel {
 		
 	}
 	
-	public void drawHealth(Graphics2D g2d){
+	private void drawBullets(Graphics2D g2d) {
+		if(Person.bullets.size() > 0) {
+			System.out.println(Person.bullets.get(0)[0]);
+			System.out.println(Person.bullets.get(0)[1]);
+			System.out.println(Person.bulletVectors.get(0)[0]);
+			System.out.println(Person.bulletVectors.get(0)[1]);
+		}
+		
+		int x1;
+		int x2;
+		int y1;
+		int y2;
+		
+		for(int i = 0; i < Person.bullets.size(); i++) {
+			x1 = (int) Math.round(Person.bullets.get(i)[0]);
+			y1 = (int) Math.round(Person.bullets.get(i)[1]);
+			x2 = (int) Math.round(x1 + Person.bulletVectors.get(i)[0]);
+			y2 = (int) Math.round(y1 + Person.bulletVectors.get(i)[1]);
+			
+			g2d.setColor(Color.RED);
+			g2d.setStroke(new BasicStroke(5));
+			g2d.drawLine(x1, y1, x2, y2);
+		}
+	}
+	
+	private void drawHealth(Graphics2D g2d){
 		double aspectRatio = 0.2;
 		int width = (int) Math.round(innerWidth / 5);
 		int height = (int) Math.round(width * aspectRatio);
@@ -296,7 +324,7 @@ public class Display extends JPanel {
 		g2d.drawRect(startX, startY, width, height);
 	}
 	
-	public void drawPowerups(Graphics2D g2d) {
+	private void drawPowerups(Graphics2D g2d) {
 		Integer[] pixelPos = new Integer[2];
 		int squareSize = (int) Math.round(innerWidth / m.levels.get(m.currentLevel).length);
 		
@@ -389,7 +417,7 @@ public class Display extends JPanel {
 		
 	}
 	
-	public void resetParameters() {
+	private void resetParameters() {
 		/*
 		 * If the aspect ratio of the window is smaller, then the width of the window
 		 * must be proportionally smaller because the width is the numerator of the

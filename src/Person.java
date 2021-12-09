@@ -40,6 +40,16 @@ public class Person {
 	public static int attackDamage;
 	public static double attackRange;
 	
+	public static int speedCooldown;
+	public static int bulletCooldown;
+	public static int damageCooldown;
+	//Cooldown until you can shoot another bullet
+	public static int shootCooldown;
+	
+	static double bulletSpeed;
+	static ArrayList<Double[]> bullets;
+	static ArrayList<Double[]> bulletVectors;
+	
 	public Person(Main m) {
 		this.m = m;
 		
@@ -54,15 +64,28 @@ public class Person {
 		
 		health = maxHealth;
 		cooldown = 0;
+		shootCooldown = 0;
 		
 		attackDamage = 2;
 		attackRange = 0.08;
+		
+		speedCooldown = 0;
+		bulletCooldown = 0;
+		damageCooldown = 0;
+		
+		bulletSpeed = 5;
+		bullets = new ArrayList<Double[]>();
+		bulletVectors = new ArrayList<Double[]>();
 		
 	}
 	
 	public static void cooldown() {
 		if(cooldown > 0) {
 			cooldown--;
+		}
+		
+		if(shootCooldown > 0) {
+			shootCooldown--;
 		}
 		
 	}
@@ -87,6 +110,7 @@ public class Person {
 	}
 	
 	public void attack() {
+
 		double x1;
 		double x2;
 		double y1; 
@@ -121,6 +145,84 @@ public class Person {
 			}
 		}
 		
+	}
+	
+	public void shoot() {
+		Double[] bulletPosition = new Double[2];
+		Double[] bulletVector = new Double[2];
+		double vectorDistance;
+		Point mouse;
+		Point rMouse = new Point();
+		
+		if(shootCooldown <= 0) {
+			bulletPosition[0] = pixelPosition[0] + pixelWidth / 2;
+			bulletPosition[1] = pixelPosition[1] + pixelWidth * aspectRatio / 2;
+			
+			mouse = MouseInfo.getPointerInfo().getLocation();
+			//Relative mouse position
+			rMouse = new Point();
+			rMouse.x = (int) Math.round(mouse.x - (m.frame.getContentPane().getLocationOnScreen().x + pixelPosition[0]));
+			rMouse.y = (int) Math.round(mouse.y - (m.frame.getContentPane().getLocationOnScreen().y + pixelPosition[1]));
+			vectorDistance = Math.pow(rMouse.x, 2) + Math.pow(rMouse.y, 2);
+			vectorDistance = Math.sqrt(vectorDistance);
+			bulletVector[0] = bulletSpeed * rMouse.x / vectorDistance;
+			bulletVector[1] = bulletSpeed * rMouse.y / vectorDistance;
+			
+			bullets.add(bulletPosition);
+			bulletVectors.add(bulletVector);
+
+			shootCooldown = 1;
+		}
+		
+	}
+	
+	public void updateBullets() {
+		double x1;
+		double x2;
+		double y1;
+		double y2;
+		
+		for(int i = 0; i < bullets.size(); i++) {
+			bullets.get(i)[0] += bulletVectors.get(i)[0];
+			bullets.get(i)[1] += bulletVectors.get(i)[1];
+			
+			for(int b = 0; b < m.monsters.size(); b++) {
+				//We have to check this, because we remove bullets, so otherwise we could get an out of bounds error
+				if(i < bullets.size()) {
+					if(bullets.get(i)[0] > m.monsters.get(b).pixelPosition[0]) {
+						if(bullets.get(i)[1] > m.monsters.get(b).pixelPosition[1]) {
+							if(bullets.get(i)[0] < m.monsters.get(b).pixelPosition[0] + Monster.pixelWidth) {
+								if(bullets.get(i)[1] < m.monsters.get(b).pixelPosition[1] + Monster.pixelWidth * Monster.aspectRatio) {
+									m.monsters.get(b).takeDamage(5);
+									bullets.remove(i);
+									bulletVectors.remove(i);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			for(int c = 0; c < m.levels.get(m.currentLevel).length; c++) {
+				for(int b = 0; b < m.levels.get(m.currentLevel)[c].length; b++) {
+					if(i < bullets.size()) {
+						if(m.levels.get(m.currentLevel)[c][b] == 1) {
+							x1 = m.display.startX + b * m.display.innerWidth / m.levels.get(m.currentLevel)[c].length;
+							y1 = m.display.startY + c * m.display.innerHeight / m.levels.get(m.currentLevel).length;
+							x2 = x1 + (m.display.innerWidth / m.levels.get(m.currentLevel)[c].length);
+							y2 = y1 + (m.display.innerHeight / m.levels.get(m.currentLevel).length);
+													
+							if(bullets.get(i)[0] < x2 && bullets.get(i)[0] > x1
+							&& bullets.get(i)[1] < y2 && bullets.get(i)[1] > y1) {
+								bullets.remove(i);
+								bulletVectors.remove(i);
+							}
+						}
+					}
+				}
+			}
+		}
+				
 	}
 	
 	public boolean checkMonsterRange(int i) {
@@ -163,6 +265,53 @@ public class Person {
 		
 	}
 	
+	public static void updatePowerups() {
+		
+		if(speedCooldown <= 0) {
+			movementSpeed = 0.01;
+		}else {
+			speedCooldown--;
+		}
+		
+		if(bulletCooldown > 0) {
+			bulletCooldown--;
+		}
+		
+		if(damageCooldown <= 0) {
+			attackDamage = 2;
+		}else {
+			damageCooldown--;
+		}
+		
+	}
+	
+	public static void speedPwr() {
+		speedCooldown = 15;
+		movementSpeed = 0.018;
+		
+	}
+		
+	public static void bulletPwr() {
+		bulletCooldown = 50;
+		
+	}
+	
+	public static void damagePwr() {
+		damageCooldown = 20;
+		attackDamage = 4;
+		
+	}
+	
+	public static void healthPwr() {
+		health += 5;
+		
+		if(health > maxHealth) {
+			health = maxHealth;
+		}
+		
+	}
+		
+	//Updates health when the level changes
 	public static void levelRegen() {
 		health = health + (maxHealth - health) / 2;
 		

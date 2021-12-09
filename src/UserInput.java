@@ -20,7 +20,11 @@ public class UserInput implements KeyListener, MouseListener{
 	
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		m.person.attack();
+		if(Person.bulletCooldown > 0) {
+			m.person.shoot();
+		}else {
+			m.person.attack();
+		}
 		
 	}
 

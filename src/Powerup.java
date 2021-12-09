@@ -4,6 +4,8 @@ public class Powerup {
 	
 	Main m;
 	
+	int despawnTime;
+	
 	static ArrayList<Double[]> speed;
 	static ArrayList<Integer> speedTime;
 	
@@ -15,9 +17,11 @@ public class Powerup {
 	
 	static ArrayList<Double[]> health;
 	static ArrayList<Integer> healthTime;
-	
+		
 	public Powerup(Main m) {
 		this.m = m;
+		
+		despawnTime = 10;
 			
 		speed = new ArrayList<Double[]>();
 		speedTime = new ArrayList<Integer>();
@@ -43,6 +47,7 @@ public class Powerup {
 					
 			if(Math.random() < 0.03) {
 				speed.add(spotPos);
+				speedTime.add(despawnTime);
 			}
 		}
 		
@@ -53,6 +58,7 @@ public class Powerup {
 					
 			if(Math.random() < 0.03) {
 				bullet.add(spotPos);
+				bulletTime.add(despawnTime);
 			}
 		}
 		
@@ -63,6 +69,7 @@ public class Powerup {
 					
 			if(Math.random() < 0.03) {
 				damage.add(spotPos);
+				damageTime.add(despawnTime);
 			}
 		}
 		
@@ -73,6 +80,7 @@ public class Powerup {
 					
 			if(Math.random() < 0.03) {
 				health.add(spotPos);
+				healthTime.add(despawnTime);
 			}
 		}
 		
@@ -156,11 +164,11 @@ public class Powerup {
 			bulletTime.set(i, bulletTime.get(i) - 1);
 		}
 		
-		for(int i = 0; i < speedTime.size(); i++) {
-			speedTime.set(i, speedTime.get(i) - 1);
+		for(int i = 0; i < damageTime.size(); i++) {
+			damageTime.set(i, damageTime.get(i) - 1);
 		}
 		
-		for(int i = 0; i < speedTime.size(); i++) {
+		for(int i = 0; i < healthTime.size(); i++) {
 			healthTime.set(i, healthTime.get(i) - 1);
 		}
 		
@@ -195,6 +203,79 @@ public class Powerup {
 			if(healthTime.get(i) == 0) {
 				health.remove(i);
 				healthTime.remove(i);
+			}
+		}
+	}
+	
+	public void collision(){
+		int x1;
+		int y1;
+		int x2;
+		int y2;
+		int squareSize = (int) Math.round(m.display.innerWidth / m.levels.get(m.currentLevel)[0].length);
+		double pixelHeight;
+		
+		for(int i = 0; i < speed.size(); i++) {
+			x1 = (int) Math.round(m.display.startX + Powerup.speed.get(i)[0] * m.display.innerWidth);
+			y1 = (int) Math.round(m.display.startY + Powerup.speed.get(i)[1] * m.display.innerHeight);
+			x2 = x1 + squareSize;
+			y2 = y1 + squareSize;
+			
+			pixelHeight = Person.pixelWidth * Person.aspectRatio;
+			
+			if(Person.pixelPosition[0] < x2 && Person.pixelPosition[0] + Person.pixelWidth > x1
+			&& Person.pixelPosition[1] < y2 && Person.pixelPosition[1] + pixelHeight > y1) {
+				speed.remove(i);
+				speedTime.remove(i);
+				Person.speedPwr();
+			}
+		}
+		
+		for(int i = 0; i < bullet.size(); i++) {
+			x1 = (int) Math.round(m.display.startX + Powerup.bullet.get(i)[0] * m.display.innerWidth);
+			y1 = (int) Math.round(m.display.startY + Powerup.bullet.get(i)[1] * m.display.innerHeight);
+			x2 = x1 + squareSize;
+			y2 = y1 + squareSize;
+			
+			pixelHeight = Person.pixelWidth * Person.aspectRatio;
+			
+			if(Person.pixelPosition[0] < x2 && Person.pixelPosition[0] + Person.pixelWidth > x1
+			&& Person.pixelPosition[1] < y2 && Person.pixelPosition[1] + pixelHeight > y1) {
+				bullet.remove(i);
+				bulletTime.remove(i);
+				Person.bulletPwr();
+			}
+		}
+		
+		for(int i = 0; i < damage.size(); i++) {
+			x1 = (int) Math.round(m.display.startX + Powerup.damage.get(i)[0] * m.display.innerWidth);
+			y1 = (int) Math.round(m.display.startY + Powerup.damage.get(i)[1] * m.display.innerHeight);
+			x2 = x1 + squareSize;
+			y2 = y1 + squareSize;
+			
+			pixelHeight = Person.pixelWidth * Person.aspectRatio;
+			
+			if(Person.pixelPosition[0] < x2 && Person.pixelPosition[0] + Person.pixelWidth > x1
+			&& Person.pixelPosition[1] < y2 && Person.pixelPosition[1] + pixelHeight > y1) {
+				damage.remove(i);
+				damageTime.remove(i);
+				Person.damagePwr();
+			}
+		}
+		
+		for(int i = 0; i < health.size(); i++) {
+			x1 = (int) Math.round(m.display.startX + Powerup.health.get(i)[0] * m.display.innerWidth);
+			y1 = (int) Math.round(m.display.startY + Powerup.health.get(i)[1] * m.display.innerHeight);
+			x2 = x1 + squareSize;
+			y2 = y1 + squareSize;
+			
+			pixelHeight = Person.pixelWidth * Person.aspectRatio;
+			
+			if(Person.pixelPosition[0] < x2 && Person.pixelPosition[0] + Person.pixelWidth > x1
+			&& Person.pixelPosition[1] < y2 && Person.pixelPosition[1] + pixelHeight > y1) {
+				health.remove(i);
+				healthTime.remove(i);
+				Person.healthPwr();
 			}
 		}
 	}
